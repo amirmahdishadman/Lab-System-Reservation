@@ -1,0 +1,34 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Lab Reservations{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'vendor/bootstrap/bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'reservations/app.css' %}">
+  {% block head %}{% endblock %}
+</head>
+<body>
+  {% if user.is_authenticated %}
+    <nav class="navbar navbar-expand-lg navbar-dark app-nav"><div class="container-fluid px-4">
+      <a class="navbar-brand fw-semibold" href="{% url 'calendar' %}">Lab Reservations</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"><span class="navbar-toggler-icon"></span></button>
+      <div class="collapse navbar-collapse" id="mainNav"><div class="navbar-nav me-auto">
+        <a class="nav-link" href="{% url 'calendar' %}">Calendar</a>
+        {% if user.is_staff %}<a class="nav-link" href="{% url 'manage-users' %}">Users</a><a class="nav-link" href="{% url 'manage-systems' %}">Systems</a>{% endif %}
+      </div><div class="d-flex align-items-center gap-2 text-white">
+        {% if user.avatar_url %}<img src="{{ user.avatar_url }}" class="avatar avatar-sm" alt="">{% else %}<span class="avatar avatar-sm avatar-fallback">{{ user|stringformat:'s'|slice:':1'|upper }}</span>{% endif %}
+        <a class="nav-link text-white" href="{% url 'profile' %}">{{ user }}</a>
+        <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="btn btn-sm btn-outline-light" type="submit">Sign out</button></form>
+      </div></div>
+    </div></nav>
+  {% endif %}
+  <main class="{% block main_class %}container py-4{% endblock %}">
+    {% for message in messages %}<div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show">{{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}
+    {% block content %}{% endblock %}
+  </main>
+  <script src="{% static 'vendor/bootstrap/bootstrap.bundle.min.js' %}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

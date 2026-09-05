@@ -1,0 +1,11 @@
+{
+  "name": "lab-system-reservation",
+  "private": true,
+  "scripts": {
+    "build": "mkdir -p reservations/static/vendor/fullcalendar reservations/static/vendor/bootstrap && cp node_modules/fullcalendar/index.global.min.js reservations/static/vendor/fullcalendar/fullcalendar.min.js && cp node_modules/bootstrap/dist/css/bootstrap.min.css node_modules/bootstrap/dist/css/bootstrap.min.css.map node_modules/bootstrap/dist/js/bootstrap.bundle.min.js node_modules/bootstrap/dist/js/bootstrap.bundle.min.js.map reservations/static/vendor/bootstrap/"
+  },
+  "dependencies": {
+    "bootstrap": "5.3.8",
+    "fullcalendar": "6.1.19"
+  }
+}

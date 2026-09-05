@@ -1,0 +1,6 @@
+{% extends 'reservations/base.html' %}
+{% block title %}Profile · Lab Reservations{% endblock %}
+{% block content %}<h1 class="h3 mb-4">Your profile</h1><div class="row g-4">
+<div class="col-lg-6"><div class="card border-0 shadow-sm"><div class="card-body p-4"><h2 class="h5 mb-3">Profile details</h2><form method="post" enctype="multipart/form-data">{% csrf_token %}<input type="hidden" name="action" value="profile">{{ form.as_div }}<button class="btn btn-primary mt-3">Save profile</button></form></div></div></div>
+<div class="col-lg-6"><div class="card border-0 shadow-sm"><div class="card-body p-4"><h2 class="h5 mb-3">Change password</h2><form method="post">{% csrf_token %}<input type="hidden" name="action" value="password">{{ password_form.as_div }}<button class="btn btn-primary mt-3">Change password</button></form></div></div></div>
+</div>{% endblock %}

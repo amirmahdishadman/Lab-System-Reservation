@@ -1,0 +1,21 @@
+:root { --ink: #172033; --nav: #172554; --surface: #f5f7fb; }
+body { background: var(--surface); color: var(--ink); min-height: 100vh; }
+.app-nav { background: linear-gradient(110deg, #172554, #1d4ed8); }
+.calendar-card { background: #fff; border-radius: 1rem; box-shadow: 0 7px 25px rgba(23,32,51,.08); padding: 1.25rem; }
+.fc .fc-button-primary { background: #2563eb; border-color: #2563eb; }
+.fc .fc-event { cursor: pointer; border-radius: .35rem; padding: 1px 3px; }
+.avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; display: inline-grid; place-items: center; flex: 0 0 auto; }
+.avatar-sm { width: 30px; height: 30px; font-size: .75rem; }
+.avatar-fallback { background: #dbeafe; color: #1e40af; font-weight: 700; }
+.system-dot { display: inline-block; width: .75rem; height: .75rem; border-radius: 50%; margin-right: .5rem; }
+.empty-state { text-align: center; background: white; border-radius: 1rem; padding: 5rem 1rem; box-shadow: 0 7px 25px rgba(23,32,51,.08); }
+.form-page { max-width: 680px; margin: 0 auto; }
+form > div { margin-bottom: 1rem; }
+form > div > label { display: block; font-weight: 500; margin-bottom: .4rem; }
+form > div > input:not([type=checkbox]), form > div > select, form > div > textarea { display: block; width: 100%; padding: .55rem .75rem; border: 1px solid #ced4da; border-radius: .375rem; }
+.helptext { display: block; color: #6c757d; font-size: .85rem; margin-top: .3rem; }
+.errorlist { color: #b91c1c; margin: .25rem 0; }
+.login-shell { display: grid; place-items: center; min-height: 100vh; padding: 1rem; background: radial-gradient(circle at top right, #dbeafe, transparent 38%), var(--surface); }
+.login-card { width: min(100%, 440px); }
+.brand-mark { width: 48px; height: 48px; display: grid; place-items: center; border-radius: 14px; color: white; font-weight: 800; background: linear-gradient(135deg, #2563eb, #4338ca); }
+@media (max-width: 700px) { .calendar-card { padding: .5rem; } .fc .fc-toolbar { align-items: flex-start; gap: .5rem; } .fc .fc-toolbar-title { font-size: 1.15rem; } }

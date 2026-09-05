@@ -1,0 +1,22 @@
+{% extends 'reservations/base.html' %}{% load static %}
+{% block title %}Calendar · Lab Reservations{% endblock %}
+{% block head %}<script src="{% static 'vendor/fullcalendar/fullcalendar.min.js' %}"></script>{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+  <div><h1 class="h3 mb-1">System calendar</h1><div class="text-secondary">Times shown in {{ lab_timezone }}</div></div>
+  <div class="d-flex align-items-center gap-2"><label for="systemFilter" class="text-secondary">System</label><select id="systemFilter" class="form-select"><option value="">All systems</option>{% for system in systems %}<option value="{{ system.pk }}">{{ system.name }}</option>{% endfor %}</select><button id="newReservation" class="btn btn-primary text-nowrap">New reservation</button></div>
+</div>
+{% if systems %}<div id="calendar" class="calendar-card"></div>{% else %}<div class="empty-state"><h2 class="h5">No active systems</h2><p class="text-secondary">An administrator must add a system before reservations can be created.</p>{% if user.is_staff %}<a href="{% url 'system-create' %}" class="btn btn-primary">Add a system</a>{% endif %}</div>{% endif %}
+<div class="modal fade" id="reservationModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><form id="reservationForm">
+  <div class="modal-header"><h2 class="modal-title h5">Reservation</h2><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body"><div id="reservationError" class="alert alert-danger d-none"></div><input type="hidden" id="reservationId">
+    <div class="mb-3"><label class="form-label" for="reservationSystem">System</label><select class="form-select" id="reservationSystem" required>{% for system in systems %}<option value="{{ system.pk }}">{{ system.name }}</option>{% endfor %}</select></div>
+    {% if user.is_staff %}<div class="mb-3"><label class="form-label" for="reservationOwner">User</label><select class="form-select" id="reservationOwner" required>{% for member in users %}<option value="{{ member.pk }}">{{ member }}</option>{% endfor %}</select></div>{% endif %}
+    <div class="row g-3 mb-3"><div class="col-sm-6"><label class="form-label" for="reservationStart">Start</label><input class="form-control" type="datetime-local" id="reservationStart" required></div><div class="col-sm-6"><label class="form-label" for="reservationEnd">End</label><input class="form-control" type="datetime-local" id="reservationEnd" required></div></div>
+    <div class="mb-3"><label class="form-label" for="reservationPurpose">Purpose</label><input class="form-control" id="reservationPurpose" maxlength="160"></div><div><label class="form-label" for="reservationNotes">Notes</label><textarea class="form-control" id="reservationNotes" rows="3"></textarea></div>
+  </div>
+  <div class="modal-footer justify-content-between"><button id="deleteReservation" type="button" class="btn btn-outline-danger d-none">Cancel reservation</button><div class="ms-auto"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button><button class="btn btn-primary" type="submit">Save</button></div></div>
+</form></div></div></div>
+{% csrf_token %}
+{% endblock %}
+{% block scripts %}<script src="{% static 'reservations/calendar.js' %}"></script>{% endblock %}
