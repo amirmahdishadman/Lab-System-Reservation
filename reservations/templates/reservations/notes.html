@@ -1,0 +1,17 @@
+{% extends 'reservations/base.html' %}
+{% block title %}Notes · Lab Reservations{% endblock %}
+{% block content %}
+<section class="notes-panel" aria-labelledby="labNotesHeading">
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <div><h1 id="labNotesHeading" class="h3 mb-1">Lab notes</h1><p class="text-secondary mb-0">Updates shared by everyone in the lab.</p></div>
+    <button class="btn btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#myNoteEditor" aria-expanded="false" aria-controls="myNoteEditor">{% if own_note.content %}Edit my note{% else %}Add my note{% endif %}</button>
+  </div>
+  <div class="collapse mb-3" id="myNoteEditor"><form method="post" action="{% url 'update-note' %}" class="note-editor">{% csrf_token %}<label for="{{ note_form.content.id_for_label }}" class="form-label fw-semibold">My note</label>{{ note_form.content }}<div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mt-2"><small class="text-secondary">Visible to every signed-in user · 1,000 characters maximum</small><button class="btn btn-primary" type="submit">Save note</button></div></form></div>
+  <div class="notes-grid">
+    {% for note in lab_notes %}<article class="note-card">
+      <header class="d-flex align-items-center gap-2 mb-2">{% if note.user.avatar_url %}<img src="{{ note.user.avatar_url }}" class="avatar avatar-sm" alt="">{% else %}<span class="avatar avatar-sm avatar-fallback">{{ note.user|stringformat:'s'|slice:':1'|upper }}</span>{% endif %}<div><strong class="d-block">{{ note.user }}</strong><time class="note-time" datetime="{{ note.updated_at|date:'c' }}">Updated {{ note.updated_at|timesince }} ago</time></div></header>
+      <div class="note-content">{{ note.content|linebreaksbr }}</div>
+    </article>{% empty %}<div class="notes-empty">No notes have been shared yet. Add the first one.</div>{% endfor %}
+  </div>
+</section>
+{% endblock %}

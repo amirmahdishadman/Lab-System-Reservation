@@ -13,12 +13,12 @@ from django.http import FileResponse, Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.dateparse import parse_datetime
+from django.utils.dateparse import parse_date, parse_datetime
 from django.views.decorators.http import require_GET, require_http_methods
 
-from .forms import AdminUserCreateForm, AdminUserUpdateForm, ProfileForm, SystemForm
-from .models import Reservation, System, User
-from .services import ReservationConflict, cancel_reservation, save_reservation
+from .forms import AdminUserCreateForm, AdminUserUpdateForm, ProfileForm, SystemForm, UserNoteForm
+from .models import Reservation, System, User, UserNote
+from .services import ReservationConflict, cancel_reservation, create_reservations, save_reservation
 
 
 lab_tz = ZoneInfo(settings.TIME_ZONE)
@@ -81,6 +81,9 @@ def _event(reservation, actor):
             "purpose": reservation.purpose,
             "notes": reservation.notes,
             "canEdit": editable,
+            "seriesId": str(reservation.series_id) if reservation.series_id else "",
+            "recurrence": reservation.recurrence,
+            "recurrenceUntil": reservation.recurrence_until.isoformat() if reservation.recurrence_until else "",
         },
     }
 
@@ -92,6 +95,31 @@ def calendar_view(request):
         "users": User.objects.filter(is_active=True).order_by("display_name", "username") if request.user.is_staff else [],
         "lab_timezone": settings.TIME_ZONE,
     })
+
+
+@login_required
+def notes_view(request):
+    own_note = UserNote.objects.filter(user=request.user).first()
+    return render(request, "reservations/notes.html", {
+        "lab_notes": UserNote.objects.filter(user__is_active=True).exclude(content="").select_related("user"),
+        "note_form": UserNoteForm(instance=own_note),
+        "own_note": own_note,
+    })
+
+
+@login_required
+@require_http_methods(["POST"])
+def update_note(request):
+    note, _ = UserNote.objects.get_or_create(user=request.user)
+    form = UserNoteForm(request.POST, instance=note)
+    if form.is_valid():
+        updated_note = form.save(commit=False)
+        updated_note.content = updated_note.content.strip()
+        updated_note.save()
+        messages.success(request, "Your shared note was updated." if updated_note.content else "Your shared note was cleared.")
+    else:
+        messages.error(request, "The note could not be saved. Keep it under 1,000 characters.")
+    return redirect("notes")
 
 
 @login_required
@@ -116,7 +144,9 @@ def reservation_collection(request):
         owner = request.user
         if request.user.is_staff and data.get("ownerId"):
             owner = get_object_or_404(User, pk=data["ownerId"], is_active=True)
-        reservation = save_reservation(
+        recurrence = data.get("recurrence", Reservation.Recurrence.NONE)
+        recurrence_until = parse_date(data.get("recurrenceUntil", "")) if recurrence != Reservation.Recurrence.NONE else None
+        reservations = create_reservations(
             actor=request.user,
             owner=owner,
             system_id=data.get("systemId"),
@@ -124,9 +154,13 @@ def reservation_collection(request):
             end=_parse_time(data.get("end")),
             purpose=data.get("purpose", ""),
             notes=data.get("notes", ""),
+            recurrence=recurrence,
+            recurrence_until=recurrence_until,
         )
-        reservation = Reservation.objects.select_related("system", "owner").get(pk=reservation.pk)
-        return JsonResponse(_event(reservation, request.user), status=201)
+        reservation = Reservation.objects.select_related("system", "owner").get(pk=reservations[0].pk)
+        response = _event(reservation, request.user)
+        response["occurrenceCount"] = len(reservations)
+        return JsonResponse(response, status=201)
     except ReservationConflict as exc:
         return _error(exc, 409)
     except (ValidationError, ValueError, TypeError) as exc:
@@ -138,7 +172,8 @@ def reservation_collection(request):
 def reservation_detail(request, reservation_id):
     try:
         if request.method == "DELETE":
-            cancel_reservation(actor=request.user, reservation_id=reservation_id)
+            data = _body(request)
+            cancel_reservation(actor=request.user, reservation_id=reservation_id, scope=data.get("scope", "single"))
             return JsonResponse({}, status=204)
 
         data = _body(request)

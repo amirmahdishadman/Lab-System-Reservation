@@ -7,7 +7,7 @@ from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import UploadedFile
 from PIL import Image, ImageOps, UnidentifiedImageError
 
-from .models import System, User
+from .models import System, User, UserNote
 
 
 ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp"}
@@ -47,18 +47,25 @@ class AvatarSaveMixin:
         self._original_avatar_name = self.instance.avatar.name if self.instance.pk and self.instance.avatar else ""
 
     def clean_avatar(self):
-        return validate_avatar(self.cleaned_data.get("avatar"))
+        upload = validate_avatar(self.cleaned_data.get("avatar"))
+        self._normalized_avatar = None
+        if isinstance(upload, UploadedFile):
+            try:
+                self._normalized_avatar = normalized_avatar(upload)
+            except (Image.DecompressionBombError, UnidentifiedImageError, OSError, SyntaxError, ValueError):
+                raise forms.ValidationError("The image could not be processed. Try another JPEG, PNG, or WebP file.")
+        return upload
 
     def save(self, commit=True):
         instance = super().save(commit=False)
-        avatar = self.cleaned_data.get("avatar")
-        if isinstance(avatar, UploadedFile):
-            instance.avatar = normalized_avatar(avatar)
-            if self._original_avatar_name:
-                instance.avatar.storage.delete(self._original_avatar_name)
+        replacement = getattr(self, "_normalized_avatar", None)
+        if replacement:
+            instance.avatar = replacement
         if commit:
             instance.save()
             self.save_m2m()
+            if replacement and self._original_avatar_name and self._original_avatar_name != instance.avatar.name:
+                instance.avatar.storage.delete(self._original_avatar_name)
         return instance
 
 
@@ -101,3 +108,15 @@ class SystemForm(forms.ModelForm):
         model = System
         fields = ("name", "description", "color", "is_active")
         widgets = {"color": forms.TextInput(attrs={"type": "color"})}
+
+
+class UserNoteForm(forms.ModelForm):
+    class Meta:
+        model = UserNote
+        fields = ("content",)
+        widgets = {"content": forms.Textarea(attrs={
+            "class": "form-control",
+            "rows": 3,
+            "maxlength": 1000,
+            "placeholder": "Share a note with everyone in the lab…",
+        })}

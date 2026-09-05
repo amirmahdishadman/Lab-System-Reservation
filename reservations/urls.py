@@ -8,6 +8,8 @@ urlpatterns = [
     path("login/", auth_views.LoginView.as_view(template_name="registration/login.html"), name="login"),
     path("logout/", auth_views.LogoutView.as_view(), name="logout"),
     path("calendar/", views.calendar_view, name="calendar"),
+    path("notes/", views.notes_view, name="notes"),
+    path("notes/mine/", views.update_note, name="update-note"),
     path("profile/", views.profile_view, name="profile"),
     path("media/avatar/<int:user_id>/", views.user_avatar, name="user-avatar"),
     path("api/reservations/", views.reservation_collection, name="reservation-collection"),

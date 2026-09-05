@@ -36,8 +36,11 @@ Do not deploy with the example database passwords or Django secret key. The `/he
 
 - A reservation must have an end later than its start and a non-admin user cannot create one in the past.
 - Two active reservations cannot overlap for the same system. Back-to-back reservations are allowed.
+- Reservations can repeat every day, week, or month through an inclusive end date. A series is created atomically, so one conflict rejects the entire series.
+- A recurring occurrence can be edited independently, cancelled independently, or cancelled together with all following occurrences.
 - Conflict checks run inside a transaction while locking the system row, so simultaneous booking requests cannot both win.
 - Users can edit or cancel only their own future bookings. Administrators can manage any booking.
+- Each active user can publish one shared lab note on the dedicated Notes page, and can update or clear their own note at any time.
 - Deactivation preserves existing history while preventing new reservations.
 
 ## Tests

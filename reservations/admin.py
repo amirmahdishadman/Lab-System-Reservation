@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from .models import Reservation, System, User
+from .models import Reservation, System, User, UserNote
 
 
 @admin.register(User)
@@ -19,6 +19,12 @@ class SystemAdmin(admin.ModelAdmin):
 
 @admin.register(Reservation)
 class ReservationAdmin(admin.ModelAdmin):
-    list_display = ("system", "owner", "start", "end", "status")
-    list_filter = ("status", "system")
+    list_display = ("system", "owner", "start", "end", "recurrence", "status")
+    list_filter = ("status", "recurrence", "system")
     search_fields = ("owner__username", "owner__display_name", "purpose")
+
+
+@admin.register(UserNote)
+class UserNoteAdmin(admin.ModelAdmin):
+    list_display = ("user", "updated_at")
+    search_fields = ("user__username", "user__display_name", "content")
